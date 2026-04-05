@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RevFlow 360 — AI Revenue Lifecycle Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f2eb;
+    --acid: #c8ff00;
+    --signal: #ff3c2f;
+    --muted: #8a8780;
+    --border: rgba(10,10,15,0.12);
+    --card-bg: #ffffff;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.35;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(245,242,235,0.88);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--acid);
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(200,255,0,0.6); }
+    50% { transform: scale(1.2); box-shadow: 0 0 0 6px rgba(200,255,0,0); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+
+  .nav-cta {
+    background: var(--ink);
+    color: var(--paper) !important;
+    padding: 10px 22px;
+    border-radius: 2px;
+    font-size: 12px !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .nav-cta:hover { background: var(--signal) !important; color: white !important; transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-top: 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 64px 80px 48px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+  .eyebrow-line {
+    width: 32px;
+    height: 1px;
+    background: var(--muted);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(44px, 5vw, 72px);
+    line-height: 0.95;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+  }
+
+  h1 em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--signal);
+  }
+
+  .hero-sub {
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #444;
+    max-width: 460px;
+    margin-bottom: 40px;
+  }
+
+  .hero-sub strong {
+    font-weight: 400;
+    color: var(--ink);
+    background: var(--acid);
+    padding: 0 4px;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    padding: 16px 32px;
+    border: 2px solid var(--ink);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--acid);
+    transform: translateX(-101%);
+    transition: transform 0.25s cubic-bezier(0.65,0,0.35,1);
+    z-index: 0;
+  }
+  .btn-primary:hover { color: var(--ink); border-color: var(--acid); }
+  .btn-primary:hover::after { transform: translateX(0); }
+  .btn-primary span { position: relative; z-index: 1; }
+
+  .btn-ghost {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--ink); }
+  .btn-ghost svg { transition: transform 0.2s; }
+  .btn-ghost:hover svg { transform: translateX(4px); }
+
+  .hero-right {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  /* Animated dashboard mockup */
+  .dashboard-mock {
+    width: 100%;
+    max-width: 520px;
+    background: var(--ink);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 24px 24px 0 var(--acid), -4px -4px 0 var(--signal);
+    position: relative;
+  }
+
+  .dash-bar {
+    background: #1a1a22;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .dash-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dash-dot:nth-child(1) { background: var(--signal); }
+  .dash-dot:nth-child(2) { background: #f5a623; }
+  .dash-dot:nth-child(3) { background: #27c93f; }
+  .dash-title {
+    margin-left: auto;
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.1em;
+  }
+
+  .dash-body { padding: 20px; }
+
+  .dash-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .dash-stat {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 6px;
+    padding: 12px;
+  }
+  .dash-stat-label { font-size: 9px; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .dash-stat-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; color: #fff; }
+  .dash-stat-val.green { color: var(--acid); }
+  .dash-stat-val.red { color: var(--signal); }
+
+  .dash-feed {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .dash-feed-head {
+    padding: 10px 14px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .feed-items { padding: 8px 0; }
+  .feed-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    opacity: 0;
+    animation: fadeSlide 0.5s ease forwards;
+  }
+  .feed-item:nth-child(1) { animation-delay: 0.5s; }
+  .feed-item:nth-child(2) { animation-delay: 1.2s; }
+  .feed-item:nth-child(3) { animation-delay: 2.1s; }
+  .feed-item:nth-child(4) { animation-delay: 3.0s; }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .feed-badge {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .feed-badge.ai { background: var(--acid); }
+  .feed-badge.sync { background: #4a9eff; }
+  .feed-badge.win { background: #27c93f; }
+
+  .feed-text { font-size: 10px; color: rgba(255,255,255,0.55); flex: 1; }
+  .feed-text strong { color: rgba(255,255,255,0.85); font-weight: 400; }
+  .feed-time { font-size: 9px; color: rgba(255,255,255,0.2); }
+
+  /* Hero bg decoration */
+  .hero-blob {
+    position: absolute;
+    top: 20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse at center, rgba(200,255,0,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    background: var(--ink);
+    padding: 28px 48px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    border-top: 3px solid var(--acid);
+  }
+
+  .stat-item {
+    padding: 16px 32px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 36px;
+    color: var(--acid);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .stat-label { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 0.06em; }
+
+  /* ── SECTION COMMONS ── */
+  section { padding: 120px 48px; }
+
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+  .section-tag::before {
+    content: '';
+    width: 20px; height: 1px;
+    background: var(--muted);
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 4vw, 52px);
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    margin-bottom: 20px;
+  }
+
+  /* ── PROBLEM SECTION ── */
+  .problem {
+    background: var(--ink);
+    color: var(--paper);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .problem::before {
+    content: '"THE GAP"';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(80px, 12vw, 180px);
+    letter-spacing: -8px;
+    color: rgba(255,255,255,0.03);
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  .problem h2 { color: var(--paper); }
+
+  .problem-stat {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(64px, 8vw, 120px);
+    font-weight: 800;
+    color: var(--signal);
+    letter-spacing: -4px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .problem-desc {
+    font-size: 16px;
+    line-height: 1.8;
+    color: rgba(245,242,235,0.6);
+    font-weight: 300;
+  }
+
+  .gap-visual {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+  }
+
+  .gap-box {
+    flex: 1;
+    padding: 24px 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    text-align: center;
+  }
+  .gap-box-icon { font-size: 28px; margin-bottom: 8px; }
+  .gap-box-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+
+  .gap-arrow {
+    width: 60px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+  }
+  .gap-arrow-line {
+    width: 100%;
+    height: 2px;
+    background: var(--signal);
+    position: relative;
+  }
+  .gap-arrow-label {
+    font-size: 9px;
+    color: var(--signal);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── PILLARS ── */
+  .pillars {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .pillars-header {
+    text-align: center;
+    margin-bottom: 80px;
+  }
+
+  .pillar-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 2px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .pillar-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 8px 8px 0 var(--acid);
+  }
+  .pillar-card:nth-child(even) { direction: rtl; }
+  .pillar-card:nth-child(even) > * { direction: ltr; }
+
+  .pillar-content {
+    padding: 56px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .pillar-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 80px;
+    color: rgba(10,10,15,0.05);
+    line-height: 1;
+    margin-bottom: -20px;
+    letter-spacing: -4px;
+  }
+
+  .pillar-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+
+  .pillar-value {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .pillar-desc {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #555;
+    font-weight: 300;
+    margin-bottom: 24px;
+  }
+
+  .pillar-hook {
+    border-left: 3px solid var(--acid);
+    padding-left: 16px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  .pillar-visual {
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    min-height: 360px;
+  }
+
+  /* Pillar visual cards */
+  .mock-card {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .mock-msg {
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px 10px 10px 2px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+    position: relative;
+  }
+  .mock-msg.ai {
+    background: rgba(200,255,0,0.1);
+    border-radius: 10px 10px 2px 10px;
+    border: 1px solid rgba(200,255,0,0.2);
+    color: rgba(200,255,0,0.8);
+    margin-left: 24px;
+  }
+  .mock-msg strong { color: #fff; font-weight: 400; }
+  .mock-label { font-size: 9px; color: rgba(255,255,255,0.2); margin-bottom: 4px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .mock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(200,255,0,0.15);
+    border: 1px solid rgba(200,255,0,0.3);
+    color: var(--acid);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 8px;
+  }
+  .mock-badge::before { content: '✓'; font-size: 10px; }
+
+  .mock-hubspot {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 12px;
+  }
+  .mock-hubspot-head {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.25);
+    margin-bottom: 8px;
+  }
+  .mock-field {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 10px;
+  }
+  .mock-field:last-child { border-bottom: none; }
+  .mock-field-key { color: rgba(255,255,255,0.3); }
+  .mock-field-val { color: rgba(255,255,255,0.7); }
+
+  /* ── WHY BUY ── */
+  .why {
+    background: var(--paper);
+    padding: 120px 48px;
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    max-width: 1200px;
+    margin: 60px auto 0;
+  }
+
+  .why-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .why-item:hover { background: var(--ink); color: var(--paper); transform: translateY(-4px); box-shadow: 6px 6px 0 var(--acid); }
+  .why-item:hover .why-num { color: rgba(200,255,0,0.15); }
+  .why-item:hover .why-title { color: var(--paper); }
+  .why-item:hover .why-desc { color: rgba(245,242,235,0.55); }
+
+  .why-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 72px;
+    color: rgba(10,10,15,0.05);
+    line-height: 1;
+    letter-spacing: -3px;
+    margin-bottom: -12px;
+    transition: color 0.3s;
+  }
+
+  .why-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.3px;
+    margin-bottom: 12px;
+    transition: color 0.3s;
+  }
+
+  .why-desc {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #666;
+    font-weight: 300;
+    transition: color 0.3s;
+  }
+
+  /* ── CTA CLOSE ── */
+  .close-cta {
+    background: var(--ink);
+    padding: 120px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .close-cta::before {
+    content: '€150K';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(100px, 16vw, 240px);
+    letter-spacing: -8px;
+    color: rgba(255,255,255,0.025);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .close-cta h2 {
+    color: var(--paper);
+    max-width: 700px;
+    margin: 0 auto 20px;
+    font-size: clamp(36px, 4vw, 56px);
+    position: relative;
+    z-index: 2;
+  }
+
+  .close-cta h2 em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    color: var(--acid);
+    font-weight: 400;
+  }
+
+  .close-quote {
+    font-size: 16px;
+    color: rgba(245,242,235,0.5);
+    font-weight: 300;
+    max-width: 640px;
+    margin: 0 auto 48px;
+    line-height: 1.75;
+    font-style: italic;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cta-pair {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+  }
+
+  .btn-big {
+    background: var(--acid);
+    color: var(--ink);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    padding: 18px 40px;
+    text-decoration: none;
+    display: inline-block;
+    border: 2px solid var(--acid);
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-big:hover { background: transparent; color: var(--acid); }
+
+  .btn-outline {
+    background: transparent;
+    color: rgba(245,242,235,0.6);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding: 18px 32px;
+    text-decoration: none;
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: all 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--paper); color: var(--paper); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #050508;
+    color: rgba(255,255,255,0.25);
+    padding: 40px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  footer a { color: rgba(255,255,255,0.35); text-decoration: none; transition: color 0.2s; }
+  footer a:hover { color: var(--acid); }
+
+  /* ── ANIMATIONS ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding-top: 80px; }
+    .hero-left { padding: 48px 20px; }
+    .hero-right { display: none; }
+    .stats-bar { grid-template-columns: 1fr 1fr; padding: 20px; }
+    section { padding: 80px 20px; }
+    .problem-grid { grid-template-columns: 1fr; gap: 40px; }
+    .pillar-card { grid-template-columns: 1fr; }
+    .pillar-card:nth-child(even) { direction: ltr; }
+    .pillar-visual { min-height: 240px; }
+    .why-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    RevFlow 360
+  </div>
+  <ul class="nav-links">
+    <li><a href="#pillars">Product</a></li>
+    <li><a href="#why">Why Now</a></li>
+    <li><a href="#close">Pricing</a></li>
+  </ul>
+  <a href="#close" class="nav-cta">Get Demo</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-blob"></div>
+  <div class="hero-left">
+    <div class="eyebrow"><span class="eyebrow-line"></span> The Revenue Lifecycle Engine</div>
+    <h1>Close The<br><em>Gap</em> in<br>Your Revenue.</h1>
+    <p class="hero-sub">
+      Most startups lose <strong>20% of revenue</strong> to the space between CRM, messaging, and busy schedules.
+      RevFlow 360 is the single AI Intelligence Layer that closes it — for good.
+    </p>
+    <div class="hero-actions">
+      <a href="#close" class="btn-primary"><span>See It Live →</span></a>
+      <a href="#pillars" class="btn-ghost">
+        Explore the engine
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="dashboard-mock">
+      <div class="dash-bar">
+        <div class="dash-dot"></div>
+        <div class="dash-dot"></div>
+        <div class="dash-dot"></div>
+        <span class="dash-title">REVFLOW 360 — INTELLIGENCE LAYER</span>
+      </div>
+      <div class="dash-body">
+        <div class="dash-row">
+          <div class="dash-stat">
+            <div class="dash-stat-label">Deals Synced</div>
+            <div class="dash-stat-val green">247</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-label">Hours Saved</div>
+            <div class="dash-stat-val">1,234</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-label">Gap Closed</div>
+            <div class="dash-stat-val red">-20%</div>
+          </div>
+        </div>
+        <div class="dash-feed">
+          <div class="dash-feed-head">Live Intelligence Feed</div>
+          <div class="feed-items">
+            <div class="feed-item">
+              <div class="feed-badge ai"></div>
+              <div class="feed-text"><strong>Deal Whisperer</strong> updated HubSpot — Acme Corp sentiment: Positive</div>
+              <div class="feed-time">2s ago</div>
+            </div>
+            <div class="feed-item">
+              <div class="feed-badge sync"></div>
+              <div class="feed-text"><strong>Partner Concierge</strong> registered lead from @techpartner via WhatsApp</div>
+              <div class="feed-time">14s ago</div>
+            </div>
+            <div class="feed-item">
+              <div class="feed-badge win"></div>
+              <div class="feed-text"><strong>Advocacy Agent</strong> — Case study drafted for GlobalTech ROI interview</div>
+              <div class="feed-time">1m ago</div>
+            </div>
+            <div class="feed-item">
+              <div class="feed-badge ai"></div>
+              <div class="feed-text"><strong>Human-in-Loop</strong> triggered — High-value partner query escalated</div>
+              <div class="feed-time">3m ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num">5h</div>
+    <div class="stat-label">Saved per rep / week</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">500×</div>
+    <div class="stat-label">Partners, zero managers</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">&lt;2h</div>
+    <div class="stat-label">Deployment time</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">€0</div>
+    <div class="stat-label">Extra headcount needed</div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="problem">
+  <div class="problem-grid">
+    <div class="reveal">
+      <div class="section-tag" style="color:rgba(245,242,235,0.3)">The Problem</div>
+      <div class="problem-stat">20%</div>
+      <h2>Revenue leaks<br>through the gap.</h2>
+      <p class="problem-desc">
+        The space between your CRM, your messaging apps, and your team's schedules is where deals die, partners churn, and case studies never get written. It's not a people problem — it's an infrastructure problem. We fixed it.
+      </p>
+    </div>
+    <div class="reveal">
+      <div class="gap-visual">
+        <div class="gap-box">
+          <div class="gap-box-icon">💬</div>
+          <div class="gap-box-label">WhatsApp</div>
+        </div>
+        <div class="gap-arrow">
+          <div class="gap-arrow-label">GAP</div>
+          <div class="gap-arrow-line"></div>
+        </div>
+        <div class="gap-box">
+          <div class="gap-box-icon">🧠</div>
+          <div class="gap-box-label">HubSpot</div>
+        </div>
+        <div class="gap-arrow">
+          <div class="gap-arrow-label">GAP</div>
+          <div class="gap-arrow-line"></div>
+        </div>
+        <div class="gap-box">
+          <div class="gap-box-icon">👥</div>
+          <div class="gap-box-label">Your Team</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<section id="pillars" style="background: #fafaf7; padding: 120px 48px;">
+  <div class="pillars">
+    <div class="pillars-header reveal">
+      <div class="section-tag">The Three Pillars</div>
+      <h2>One Brain.<br>Three Revenue Engines.</h2>
+    </div>
+
+    <!-- Pillar 1 -->
+    <div class="pillar-card reveal">
+      <div class="pillar-content">
+        <div class="pillar-num">01</div>
+        <div class="pillar-title">Zero-Touch Sales Office</div>
+        <div class="pillar-value">Deal Whisperer — Sales Automation</div>
+        <p class="pillar-desc">Your Sales Reps are paid to close, not to type. Our Deal Whisperer allows reps to forward any messy client WhatsApp or email to a private internal line. Within seconds, the AI analyzes deal sentiment, identifies red flags, and writes the update directly into HubSpot.</p>
+        <div class="pillar-hook">"Your CRM is finally accurate, and your reps just gained 5 hours a week back."</div>
+      </div>
+      <div class="pillar-visual">
+        <div class="mock-card">
+          <div class="mock-label">WhatsApp → Deal Whisperer</div>
+          <div class="mock-msg">Hey, we're still interested but pricing is a concern after the board meeting... let me check with Sarah.</div>
+          <div class="mock-label" style="margin-top:12px">AI Analysis</div>
+          <div class="mock-msg ai">Sentiment: Cautious. Red flag: Budget re-approval needed. Recommend: Send ROI deck + follow up Thursday.</div>
+          <div class="mock-hubspot">
+            <div class="mock-hubspot-head">HubSpot — Auto-Updated</div>
+            <div class="mock-field"><span class="mock-field-key">Sentiment</span><span class="mock-field-val">Cautious ⚠️</span></div>
+            <div class="mock-field"><span class="mock-field-key">Next Action</span><span class="mock-field-val">Send ROI deck</span></div>
+            <div class="mock-field"><span class="mock-field-key">Follow-up</span><span class="mock-field-val">Thu, 10:00 AM</span></div>
+          </div>
+          <div class="mock-badge">CRM Updated — 0 reps typing</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pillar 2 -->
+    <div class="pillar-card reveal">
+      <div class="pillar-content">
+        <div class="pillar-num">02</div>
+        <div class="pillar-title">Self-Serve Partner Portal</div>
+        <div class="pillar-value">Partner Concierge — Partnership Scale</div>
+        <p class="pillar-desc">Partnerships fail when they are hard to manage. Our Partner Concierge gives every referral partner a 24/7 dedicated WhatsApp assistant. They can ask technical questions, check pricing, or register a new lead just by texting.</p>
+        <div class="pillar-hook">"Scale from 5 to 500 partners without hiring a single Partner Manager. It's growth on autopilot."</div>
+      </div>
+      <div class="pillar-visual">
+        <div class="mock-card">
+          <div class="mock-label">Partner → WhatsApp Concierge</div>
+          <div class="mock-msg">Hi! I have a lead — TechCorp, 50 seats. What's the enterprise pricing?</div>
+          <div class="mock-msg ai">Great lead! Enterprise 50-seat pricing: €2,400/mo. I've pre-registered TechCorp under your partner ID. Your commission: €480/mo recurring. Anything else?</div>
+          <div class="mock-msg">That's perfect. Can you send me the technical integration doc?</div>
+          <div class="mock-msg ai">Sending now 📎 HubSpot + WhatsApp setup guide. Lead status updated in portal.</div>
+          <div class="mock-badge">Lead registered in 47 seconds</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pillar 3 -->
+    <div class="pillar-card reveal">
+      <div class="pillar-content">
+        <div class="pillar-num">03</div>
+        <div class="pillar-title">Success-to-Social Loop</div>
+        <div class="pillar-value">Advocacy Agent — Revenue Marketing</div>
+        <p class="pillar-desc">Case studies are your best sales tool, but they never get written. The moment a deal is marked 'Closed-Won' in HubSpot, Advocacy Agent starts a clock. 30 days later, it auto-reaches out via WhatsApp, celebrates the milestone, and interviews the customer about their ROI.</p>
+        <div class="pillar-hook">"It doesn't just check in — it synthesizes that chat into a ready-to-publish case study for your marketing team."</div>
+      </div>
+      <div class="pillar-visual">
+        <div class="mock-card">
+          <div class="mock-label">Advocacy Agent → Customer (Day 30)</div>
+          <div class="mock-msg ai">Hi Alex! 🎉 It's been 30 days since you launched RevFlow. Quick question — what's been the biggest win for your team so far?</div>
+          <div class="mock-msg">Honestly, our reps stopped complaining about the CRM. We closed 3 deals faster this month.</div>
+          <div class="mock-msg ai">Amazing! And roughly how many hours per week has the team saved?</div>
+          <div class="mock-msg">I'd say about 15–20 hours across the sales team.</div>
+          <div class="mock-badge">Case study drafted → Marketing inbox</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- WHY BUY -->
+<section id="why" class="why">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="reveal" style="text-align:center;">
+      <div class="section-tag" style="justify-content:center;">Why You Buy This Today</div>
+      <h2>Three Unfair<br>Advantages.</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-item reveal">
+        <div class="why-num">01</div>
+        <div class="why-title">Instant Deployment</div>
+        <p class="why-desc">We don't replace your stack — we supercharge it. RevFlow 360 plugs into your existing HubSpot and Superchat in under two hours. No migration. No new passwords for your team.</p>
+      </div>
+      <div class="why-item reveal">
+        <div class="why-num">02</div>
+        <div class="why-title">The One Brain Advantage</div>
+        <p class="why-desc">This isn't three different tools duct-taped together. It's one Central Intelligence (Needle) ensuring your Sales, Partner, and Success teams all read from the same playbook, in real time.</p>
+      </div>
+      <div class="why-item reveal">
+        <div class="why-num">03</div>
+        <div class="why-title">Human-in-the-Loop</div>
+        <p class="why-desc">The AI knows when it's out of its depth. High-value partner asks a complex question? It instantly alerts a human manager in Superchat. No hallucinations. No lost deals. Ever.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSE CTA -->
+<section id="close" class="close-cta">
+  <div class="section-tag" style="justify-content:center; color:rgba(245,242,235,0.3); margin-bottom: 24px; position:relative;z-index:2;">The Decision</div>
+  <h2>Three junior ops hires<br>cost you <em>€150K/year.</em><br>We cost a few API calls.</h2>
+  <p class="close-quote">
+    "We built RevFlow 360 to run for the price of a few API calls. Do you want to see the HubSpot deal update itself — live, right now?"
+  </p>
+  <div class="cta-pair">
+    <a href="mailto:hello@revflow360.io" class="btn-big">Watch the Live Demo</a>
+    <a href="#pillars" class="btn-outline">Read the Playbook</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div style="width:6px;height:6px;background:var(--acid);border-radius:50%;"></div>
+    RevFlow 360
+  </div>
+  <div>
+    The AI Revenue Lifecycle Engine. WhatsApp + HubSpot + One Brain.
+  </div>
+  <div style="display:flex;gap:24px;">
+    <a href="mailto:hello@revflow360.io">Contact</a>
+    <a href="#">Privacy</a>
+    <a href="#">© 2025</a>
+  </div>
+</footer>
+
+<script>
+  // Intersection Observer for reveal animations
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // Smooth nav background on scroll
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) {
+      nav.style.boxShadow = '0 2px 32px rgba(0,0,0,0.08)';
+    } else {
+      nav.style.boxShadow = 'none';
+    }
+  });
+</script>
+</body>
+</html>

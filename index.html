@@ -790,12 +790,39 @@ footer { position: relative; z-index: 1; border-top: 1px solid var(--border); pa
     <p class="cta-quote">
       "If you hire three junior ops people to do this, it costs you €150K a year. We built RevFlow 360 to run for the price of a few API calls. Do you want to see the HubSpot deal update itself — live?"
     </p>
-    <div class="cta-buttons">
-      <a href="mailto:hello@revflow360.io" class="btn-primary" style="font-size:16px; padding:16px 32px;">
-        Book a Live Demo
-        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-      </a>
-      <a href="#pillars" class="btn-secondary">See all features</a>
+    <div class="cta-buttons" style="display:block; max-width:520px; margin:0 auto;">
+      <form id="demo-form" style="display:grid; gap:12px;">
+        <input
+          type="text"
+          id="lead-name"
+          placeholder="Your name"
+          required
+          style="padding:14px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:#111827; color:#fff; font-family:inherit; font-size:15px;"
+        />
+        <input
+          type="email"
+          id="lead-email"
+          placeholder="Work email"
+          required
+          style="padding:14px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:#111827; color:#fff; font-family:inherit; font-size:15px;"
+        />
+        <input
+          type="tel"
+          id="lead-phone"
+          placeholder="WhatsApp number e.g. +49123456789"
+          required
+          style="padding:14px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:#111827; color:#fff; font-family:inherit; font-size:15px;"
+        />
+        <button type="submit" class="btn-primary" style="border:none; cursor:pointer; justify-content:center; width:100%; font-size:16px; padding:16px 32px;">
+          Book a Live Demo
+        </button>
+      </form>
+
+      <p id="demo-form-status" style="margin-top:14px; color:#94a3b8; font-size:14px; text-align:center;"></p>
+
+      <div style="margin-top:14px; text-align:center;">
+        <a href="#pillars" class="btn-secondary">See all features</a>
+      </div>
     </div>
     <div class="cta-trust">
       <div class="trust-item"><span class="trust-check">✓</span> Deploys in &lt;2 hours</div>
@@ -848,22 +875,75 @@ footer { position: relative; z-index: 1; border-top: 1px solid var(--border); pa
     <div class="footer-links">
       <a href="#">Twitter / X</a>
       <a href="#">LinkedIn</a>
-      <a href="mailto:hello@revflow360.io">hello@revflow360.io</a>
+      <a href="/cdn-cgi/l/email-protection#b8d0ddd4d4d7f8caddceded4d7cf8b8e8896d1d7"><span class="__cf_email__" data-cfemail="543c3138383b1426312232383b236762647a3d3b">[email&#160;protected]</span></a>
     </div>
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const reveals = document.querySelectorAll('.reveal');
 const io = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+}, {   threshold: 0.15
+});
 reveals.forEach(el => io.observe(el));
 
-const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
-  nav.classList.toggle('scrolled', window.scrollY > 40);
-}, { passive: true });
+  document.querySelector('nav').classList.toggle('scrolled', window.scrollY > 20);
+});
 </script>
+
+<script>
+const N8N_WEBHOOK_URL = "https://start11.app.n8n.cloud/webhook/user-signal";
+
+async function sendEvent(payload) {
+  const res = await fetch(N8N_WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to send event");
+  }
+
+  return res.json().catch(() => ({}));
+}
+
+document.getElementById("demo-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const statusEl = document.getElementById("demo-form-status");
+  const name = document.getElementById("lead-name").value.trim();
+  const email = document.getElementById("lead-email").value.trim();
+  const phone = document.getElementById("lead-phone").value.trim();
+
+  statusEl.textContent = "Submitting...";
+
+  const basePayload = {
+    name,
+    email,
+    phone,
+    deal_id: "revflow_demo",
+    page_url: window.location.pathname,
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    await sendEvent({ ...basePayload, event_type: "deal_viewed" });
+    await sendEvent({ ...basePayload, event_type: "deal_saved" });
+    await sendEvent({ ...basePayload, event_type: "contact_clicked" });
+
+    statusEl.textContent = "Done — your demo request was submitted.";
+    e.target.reset();
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = "Something went wrong. Please try again.";
+  }
+});
+</script>
+
 </body>
 </html>
